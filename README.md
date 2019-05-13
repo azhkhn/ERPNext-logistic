@@ -4,4 +4,4 @@ MTM Logistic Module
 
 #### License
 
-MIT
+Apache 2.0
