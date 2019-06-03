@@ -20,7 +20,7 @@ def get_data():
 				{
 					"type": "doctype",
 					"name": "MTM Item Info",
-					"label": _("Item Management")
+					"label": _("MTM Item Extended Info")
 				}
 			]
 
