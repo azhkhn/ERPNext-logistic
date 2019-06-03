@@ -12,18 +12,19 @@ frappe.ui.form.on("MTM Item Info", {
         frm.trigger('qty_per_inner');
     },
     qty_per_inner:  function(frm, cdt, cdn) {
-        if(frm.doc.qty_per_inner==0){
-            $.each(arr_inner_carton , function(index, field) { 
-                if(frappe.model.get_value(cdt, cdn, field)==""){
-                    frm.set_value(field, 0);
-                }
-            });            
-        }else{
+        if(frm.doc.qty_per_inner>=1){
             $.each(arr_inner_carton , function(index, field) { 
                 if(frappe.model.get_value(cdt, cdn, field)==0){
                     frm.set_value(field, "");
                 }
             });
+        }else{
+            $.each(arr_inner_carton , function(index, field) { 
+                console.log(frappe.model.get_value(cdt, cdn, field));
+                if(!frappe.model.get_value(cdt, cdn, field)){
+                    frm.set_value(field, 0);
+                }
+            });            
         }
     },
     pack_length:  function(frm) {
@@ -36,13 +37,25 @@ frappe.ui.form.on("MTM Item Info", {
         count_pack_volume(frm);
     },
     inner_carton_length:  function(frm) {
+        frm.trigger('qty_per_inner');
         count_inner_carton_volume(frm);
     },
     inner_carton_width:  function(frm) {
+        frm.trigger('qty_per_inner');
         count_inner_carton_volume(frm);
     },
     inner_carton_height:  function(frm) {
+        frm.trigger('qty_per_inner');
         count_inner_carton_volume(frm);
+    },
+    inner_carton_net_weight:  function(frm) {
+        frm.trigger('qty_per_inner');
+    },
+    inner_carton_gross_weight:  function(frm) {
+        frm.trigger('qty_per_inner');
+    },
+    inner_carton_volume:  function(frm) {
+        frm.trigger('qty_per_inner');
     },
     outer_carton_length:  function(frm) {
         count_outer_carton_volume(frm);
@@ -71,6 +84,6 @@ var count_outer_carton_volume = function(frm){
 }
 
 var count_volume = function(length, width, height ){
-    return flt(length) * flt(width) * flt(height);
+    return flt(length)/1000 * flt(width)/1000 * flt(height)/1000;
 }
 
