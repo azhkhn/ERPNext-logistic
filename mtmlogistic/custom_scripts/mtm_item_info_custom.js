@@ -84,6 +84,6 @@ var count_outer_carton_volume = function(frm){
 }
 
 var count_volume = function(length, width, height ){
-    return flt(length) * flt(width) * flt(height);
+    return flt(length)/1000 * flt(width)/1000 * flt(height)/1000;
 }
 
