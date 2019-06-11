@@ -3,6 +3,12 @@
 
 frappe.ui.form.on('MTM Packing List', {
 	refresh: function(frm) {
-
+frm.set_query('courier_name', function() {
+                        return {
+                                filters: {
+                                        'is_transporter': 1
+                                }
+                        }
+                });
 	}
 });
