@@ -43,9 +43,6 @@ frappe.ui.form.on('MTM Packing List', {
 		});
 		
 	},
-	before_submit: function(frm) {
-		set_reqd_shipment_way_before_submit(frm);
-	},
 	validate: function(frm) {
 		if(frm.doc.date < get_today()) {
 			msgprint(__("Document Date cannot be before Today"));
@@ -131,25 +128,25 @@ var set_reqd_shipment_way = function(frm){
 	}
 }
 
-var set_reqd_shipment_way_before_submit = function(frm){
-	if(frm.doc.shipment_way == "By Sea"){
-		frm.set_df_property("container_number", "reqd", 1);
-		frm.set_df_property("seal_number", "reqd", 1);
-	}
-	else{
-		frm.set_df_property("container_number", "reqd", 0);
-		frm.set_df_property("seal_number", "reqd", 0);
-	}
+// var set_reqd_shipment_way_before_submit = function(frm){
+// 	if(frm.doc.shipment_way == "By Sea"){
+// 		frm.set_df_property("container_number", "reqd", 1);
+// 		frm.set_df_property("seal_number", "reqd", 1);
+// 	}
+// 	else{
+// 		frm.set_df_property("container_number", "reqd", 0);
+// 		frm.set_df_property("seal_number", "reqd", 0);
+// 	}
 
-	if (frm.doc.shipment_way == "By Courier"){
-		frm.set_df_property("tracking_number", "reqd", 1);
-	}else{
-		frm.set_df_property("tracking_number", "reqd", 0);
-	}
+// 	if (frm.doc.shipment_way == "By Courier"){
+// 		frm.set_df_property("tracking_number", "reqd", 1);
+// 	}else{
+// 		frm.set_df_property("tracking_number", "reqd", 0);
+// 	}
 
-	if (frm.doc.shipment_way == "By Air"){
-		frm.set_df_property("awb_number", "reqd", 1);
-	}else{
-		frm.set_df_property("awb_number", "reqd", 0);
-	}
-}
+// 	if (frm.doc.shipment_way == "By Air"){
+// 		frm.set_df_property("awb_number", "reqd", 1);
+// 	}else{
+// 		frm.set_df_property("awb_number", "reqd", 0);
+// 	}
+// }
