@@ -23,8 +23,8 @@ class MTMPackingList(Document):
 				frappe.throw(_("Seal Number is Required"), title="Mandatory Field")
 		
 		if self.shipment_way == "By Courier":
-			if not self.container_number:
-				frappe.throw(_("Container Number is Required"), title="Mandatory Field")
+			if not self.tracking_number:
+				frappe.throw(_("Tracking Number is Required"), title="Mandatory Field")
 		
 		if self.shipment_way == "By Air":
 			if not self.awb_number:
