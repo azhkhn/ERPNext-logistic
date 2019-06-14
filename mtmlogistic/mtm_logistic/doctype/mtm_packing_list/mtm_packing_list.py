@@ -4,7 +4,14 @@
 
 from __future__ import unicode_literals
 import frappe
+from frappe import _
 from frappe.model.document import Document
+from frappe.utils import today
 
 class MTMPackingList(Document):
-	pass
+
+	def validate(self):
+		if self.shipment_way != "By Sea":
+			self.port_of_embarc = ""
+			self.port_of_arrival = ""		
+
