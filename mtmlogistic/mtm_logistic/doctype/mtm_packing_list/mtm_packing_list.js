@@ -54,13 +54,13 @@ frappe.ui.form.on('MTM Packing List', {
 		}
 	},
 	eta: function(frm) {
-		if (frm.doc.eta & frm.doc.etd && (frm.doc.eta < frm.doc.etd)) {
+		if (frm.doc.eta && frm.doc.etd && (frm.doc.eta < frm.doc.etd)) {
 			msgprint(__("ETA cannot be before ETD"));
 			frm.set_value("eta", "");
 		}
 	},
 	etd: function(frm) {
-		if (frm.doc.eta & frm.doc.etd && (frm.doc.eta < frm.doc.etd)) {
+		if (frm.doc.eta && frm.doc.etd && (frm.doc.eta < frm.doc.etd)) {
 			msgprint(__("ETD cannot be after ETA"));
 			frm.set_value("etd", "");
 		}
