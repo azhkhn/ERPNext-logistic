@@ -21,8 +21,14 @@ def get_data():
 					"type": "doctype",
 					"name": "MTM Item Info",
 					"label": _("MTM Item Extended Info")
+				},
+				{
+					"type": "doctype",
+					"name": "Delivery Note",
+					"label": _("Delivery Note")
 				}
-			]
+				 ]
+			
 
 		},
 		{
@@ -46,10 +52,11 @@ def get_data():
 				},
 				{
 					"type": "doctype",
-					"name": "MTM Shipment Way",
-					"label": _("MTM Shipment Way")
+					"name": "Customs Tariff Number",
+					"label": _("Customs Tariff Number")
 				}
-			]
+				 ]
+
 
 		}
     ]        
