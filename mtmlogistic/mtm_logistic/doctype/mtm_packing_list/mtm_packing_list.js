@@ -106,13 +106,11 @@ frappe.ui.form.on('MTM Packing List', {
 var set_reqd_shipment_way = function(frm){
 	if(frm.doc.shipment_way == "By Sea"){
 		frm.set_df_property("shipment_terms", "reqd", 1);
-		// frm.set_df_property("shipping_mark", "reqd", 1);
 		frm.set_df_property("container_type", "reqd", 1);
 		frm.set_df_property("port_of_embarc", "reqd", 1);
 		frm.set_df_property("port_of_arrival", "reqd", 1);
 	}else{
 		frm.set_df_property("shipment_terms", "reqd", 0);
-		// frm.set_df_property("shipping_mark", "reqd", 0);
 		frm.set_df_property("container_type", "reqd", 0);
 		frm.set_df_property("port_of_embarc", "reqd", 0);
 		frm.set_df_property("port_of_arrival", "reqd", 0);
@@ -124,9 +122,11 @@ var set_reqd_shipment_way = function(frm){
 		frm.set_df_property("courier_name", "reqd", 0);
 	}
 
-	// if (frm.doc.shipment_way == "By Air"){
-	// 	frm.set_df_property("shipping_mark", "reqd", 1);
-	// }else{
-	// 	frm.set_df_property("shipping_mark", "reqd", 0);
-	// }
+	if (frm.doc.shipment_way == "By Air"){
+		frm.set_df_property("port_of_embarc", "reqd", 1);
+		frm.set_df_property("port_of_arrival", "reqd", 1);
+	}else{
+		frm.set_df_property("port_of_embarc", "reqd", 0);
+		frm.set_df_property("port_of_arrival", "reqd", 0);
+	}
 }

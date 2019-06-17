@@ -11,7 +11,7 @@ from frappe.utils import today
 class MTMPackingList(Document):
 
 	def validate(self):
-		if self.shipment_way != "By Sea":
+		if not(self.shipment_way == "By Sea" or self.shipment_way == "By Air"):
 			self.port_of_embarc = ""
 			self.port_of_arrival = ""
 		
@@ -22,7 +22,7 @@ class MTMPackingList(Document):
 			frappe.throw(_("Delivery Note {0} is linked with Packing List {1}").format(self.delivery_note, exist_link))
 	
 	def before_submit(self):
-		if self.shipment_way == "By Sea":
+		if self.shipment_way == "By Sea" and self.container_type != "LCL":
 			if not self.container_number:
 				frappe.throw(_("Container Number is Required"), title="Mandatory Field")
 			if not self.seal_number:
