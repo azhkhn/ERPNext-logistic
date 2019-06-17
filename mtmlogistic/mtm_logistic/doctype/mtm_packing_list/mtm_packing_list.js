@@ -13,11 +13,12 @@ frappe.ui.form.on('MTM Packing List', {
 				}
 			}
 		});
-		
-		frm.set_query('delivery_note', function () {
+
+		frm.set_query('delivery_note', function (doc) {
 			return {
+				query: 'mtmlogistic.mtm_logistic.doctype.mtm_packing_list.mtm_packing_list.delivery_note_query',
 				filters: {
-					'docstatus': 1
+					pl_name: doc.name
 				}
 			}
 		});
@@ -63,13 +64,15 @@ frappe.ui.form.on('MTM Packing List', {
 		}
 	},
 	delivery_note: function(frm,cdt, cdn) {
-		frappe.model.with_doc("Delivery Note", frm.doc.delivery_note, function() {
-			let delivery_note = frappe.model.get_doc("Delivery Note", frm.doc.delivery_note);
-			frm.set_value("customer", delivery_note.customer);
-			frm.set_value("customer_name", delivery_note.customer_name);
-			frm.set_value("contact_person", delivery_note.contact_person);
-			frm.set_value("shipping_address_name", delivery_note.shipping_address_name);
-		});
+		if(frm.doc.delivery_note){
+			frappe.model.with_doc("Delivery Note", frm.doc.delivery_note, function() {
+				let delivery_note = frappe.model.get_doc("Delivery Note", frm.doc.delivery_note);
+				frm.set_value("customer", delivery_note.customer);
+				frm.set_value("customer_name", delivery_note.customer_name);
+				frm.set_value("contact_person", delivery_note.contact_person);
+				frm.set_value("shipping_address_name", delivery_note.shipping_address_name);
+			});
+		}
 	},
 	customer: function(frm) {
 		frm.set_value("contact_person", "");
@@ -103,13 +106,13 @@ frappe.ui.form.on('MTM Packing List', {
 var set_reqd_shipment_way = function(frm){
 	if(frm.doc.shipment_way == "By Sea"){
 		frm.set_df_property("shipment_terms", "reqd", 1);
-		frm.set_df_property("shipping_mark", "reqd", 1);
+		// frm.set_df_property("shipping_mark", "reqd", 1);
 		frm.set_df_property("container_type", "reqd", 1);
 		frm.set_df_property("port_of_embarc", "reqd", 1);
 		frm.set_df_property("port_of_arrival", "reqd", 1);
 	}else{
 		frm.set_df_property("shipment_terms", "reqd", 0);
-		frm.set_df_property("shipping_mark", "reqd", 0);
+		// frm.set_df_property("shipping_mark", "reqd", 0);
 		frm.set_df_property("container_type", "reqd", 0);
 		frm.set_df_property("port_of_embarc", "reqd", 0);
 		frm.set_df_property("port_of_arrival", "reqd", 0);
@@ -117,36 +120,13 @@ var set_reqd_shipment_way = function(frm){
 
 	if (frm.doc.shipment_way == "By Courier"){
 		frm.set_df_property("courier_name", "reqd", 1);
-	}else{
+	}else{ 
 		frm.set_df_property("courier_name", "reqd", 0);
 	}
 
-	if (frm.doc.shipment_way == "By Air"){
-		frm.set_df_property("shipping_mark", "reqd", 1);
-	}else{
-		frm.set_df_property("shipping_mark", "reqd", 0);
-	}
+	// if (frm.doc.shipment_way == "By Air"){
+	// 	frm.set_df_property("shipping_mark", "reqd", 1);
+	// }else{
+	// 	frm.set_df_property("shipping_mark", "reqd", 0);
+	// }
 }
-
-// var set_reqd_shipment_way_before_submit = function(frm){
-// 	if(frm.doc.shipment_way == "By Sea"){
-// 		frm.set_df_property("container_number", "reqd", 1);
-// 		frm.set_df_property("seal_number", "reqd", 1);
-// 	}
-// 	else{
-// 		frm.set_df_property("container_number", "reqd", 0);
-// 		frm.set_df_property("seal_number", "reqd", 0);
-// 	}
-
-// 	if (frm.doc.shipment_way == "By Courier"){
-// 		frm.set_df_property("tracking_number", "reqd", 1);
-// 	}else{
-// 		frm.set_df_property("tracking_number", "reqd", 0);
-// 	}
-
-// 	if (frm.doc.shipment_way == "By Air"){
-// 		frm.set_df_property("awb_number", "reqd", 1);
-// 	}else{
-// 		frm.set_df_property("awb_number", "reqd", 0);
-// 	}
-// }
