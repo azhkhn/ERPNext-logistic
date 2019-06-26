@@ -1,0 +1,158 @@
+.print-format {
+  padding: 0;
+  font-family: Microsoft Sans Serif;
+  font-size: 9pt;
+  line-height: 1.2;
+}
+
+.print-format td {
+  padding: 0 !important
+}
+
+@page {
+  margin: 0
+}
+
+body {
+  margin: 0
+}
+
+.sheet {
+  margin: 0;
+  overflow: hidden;
+  position: relative;
+  /* box-sizing: border-box; */
+  page-break-after: always;
+  padding: 0.3in 0.4in;
+}
+
+/** Paper sizes **/
+
+.A3 .sheet {
+  width: 297mm;
+  height: 419mm
+}
+
+.A3.landscape .sheet {
+  width: 420mm;
+  height: 296mm
+}
+
+.A4 .sheet {
+  width: 210mm;
+  height: 296mm
+}
+
+.A4.landscape .sheet {
+  width: 297mm;
+  height: 209mm
+}
+
+.A5 .sheet {
+  width: 148mm;
+  height: 209mm
+}
+
+.A5.landscape .sheet {
+  width: 210mm;
+  height: 147mm
+}
+
+.letter .sheet {
+  width: 216mm;
+  height: 279mm
+}
+
+.letter.landscape .sheet {
+  width: 280mm;
+  height: 215mm
+}
+
+.legal .sheet {
+  width: 216mm;
+  height: 356mm
+}
+
+.legal.landscape .sheet {
+  width: 357mm;
+  height: 215mm
+}
+
+/** Padding area **/
+
+.sheet.padding-10mm {
+  padding: 10mm
+}
+
+.sheet.padding-15mm {
+  padding: 15mm
+}
+
+.sheet.padding-20mm {
+  padding: 20mm
+}
+
+.sheet.padding-25mm {
+  padding: 25mm
+}
+
+/** For screen preview **/
+
+@media screen {
+  body {
+    background: white
+  }
+  .sheet {
+    /* background: white;
+     opacity: 0.8;
+    box-shadow: 0 .5mm 2mm rgba(0, 0, 0, .3);
+    margin: 5mm auto; */
+  }
+}
+
+/** Fix for Chrome issue #273306 **/
+
+@media print {
+  .A3.landscape {
+    width: 420mm
+  }
+  .A3, .A4.landscape {
+    width: 297mm
+  }
+  .A4, .A5.landscape {
+    width: 210mm
+  }
+  .A5 {
+    width: 148mm
+  }
+  .letter, .legal {
+    width: 216mm
+  }
+  .letter.landscape {
+    width: 280mm
+  }
+  .legal.landscape {
+    width: 357mm
+  }
+}
+
+.leaders {
+  padding: 0;
+  overflow-x: hidden;
+  list-style: none
+}
+
+.leaders .li_leaders:before {
+  float: left;
+  width: 0;
+  white-space: nowrap;
+  content:  ". . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . . ."
+  ". . . . . . . . . . . . . . . . . . . . "
+  ". . . . . . . . . . . . . . . . . . . . "
+  ". . . . . . . . . . . . . . . . . . . . "
+}
+
+.leaders span:first-child {
+  padding-right: 0.33em;
+  background: white
+}

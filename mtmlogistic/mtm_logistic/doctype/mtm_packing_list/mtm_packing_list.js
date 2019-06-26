@@ -42,10 +42,10 @@ frappe.ui.form.on('MTM Packing List', {
 				}
 			};
 		});
-		
+		// frm.trigger("delivery_note");
 	},
 	validate: function(frm) {
-		if(frm.doc.date < get_today()) {
+		if(frm.doc.date < frappe.datetime.get_today()) {
 			msgprint(__("Document Date cannot be before Today"));
 			frm.set_value("date", "");
             validated = false;
@@ -63,7 +63,7 @@ frappe.ui.form.on('MTM Packing List', {
 			frm.set_value("etd", "");
 		}
 	},
-	delivery_note: function(frm,cdt, cdn) {
+	delivery_note: function(frm, cdt, cdn) {
 		if(frm.doc.delivery_note){
 			frappe.model.with_doc("Delivery Note", frm.doc.delivery_note, function() {
 				let delivery_note = frappe.model.get_doc("Delivery Note", frm.doc.delivery_note);
@@ -71,6 +71,36 @@ frappe.ui.form.on('MTM Packing List', {
 				frm.set_value("customer_name", delivery_note.customer_name);
 				frm.set_value("contact_person", delivery_note.contact_person);
 				frm.set_value("shipping_address_name", delivery_note.shipping_address_name);
+
+				frappe.call({
+					method: "mtmlogistic.mtm_logistic.doctype.mtm_packing_list.mtm_packing_list.get_delivery_note_items",
+					args: {
+						delivery_note_name: frm.doc.delivery_note
+					},
+					callback: function(r) {
+						if (!r.message) {
+							frappe.throw(__("Delivery Note does not contain any item"));
+						} else {
+							frappe.model.clear_table(frm.doc, "items");
+							let idx = 0;
+							$.each(r.message, function(i, dnitem) {
+								let d = frappe.model.add_child(cur_frm.doc, "MTM Packing List Item", "items");
+
+								for(let k in dnitem) {
+									let v = dnitem[k];
+									if (["doctype", "name", "docstatus"].indexOf(k)===-1) {
+										frappe.model.set_value(d.doctype, d.name, k, v);
+									}
+								}
+								idx ++;
+								frappe.model.set_value(d.doctype, d.name, "idx", idx);
+
+							});
+						}
+						refresh_field("items");
+					}
+				});
+
 			});
 		}
 	},

@@ -1,0 +1,116 @@
+<div class="A4">
+<section class="sheet">    
+	{% if letter_head and not no_letterhead %}
+		<div class="letter-head">{{ letter_head }}</div>
+	{% endif %}
+	
+	<div class="print-heading">
+		<h2>PACKING LIST</h2>
+    </div>
+
+	<div class="row margin-bottom">
+		<div class="col-xs-12">
+			<table width="100%" class="table-info">
+				<tr>
+					<td width="18%"><strong>MESSRS: </strong></td>
+					<td width="32%">{{ doc.customer_name or "" }}</td>
+					<td width="18%"><strong>Packing List N.: </strong></td>
+					<td width="32%">{{ doc.name or "" }}</td>
+				</tr>
+				<tr>
+					<td><strong>ADDRESS: </strong></td>
+					<td>{{ doc.shipping_address or "" }}</td>
+					<td><strong>PAGE NO.: </strong></td>
+					<td>1 of 1</td>
+				</tr>
+				<tr>
+					<td><strong>TEL: </strong></td>
+					<td>{{ doc.contact_mobile or "" }}</td>
+					<td><strong>DATE: </strong></td>
+					<td>{{ frappe.utils.formatdate(doc.date) }}</td>
+				</tr>
+				<tr>
+					<td><strong>FROM: </strong></td>
+					<td>{{ doc.port_of_embarc or ""}}</td>
+					<td><strong>CONTAINER N.: </strong></td>
+					<td>{{ doc.container_number or "" }}</td>
+				</tr>
+				<tr>
+					<td><strong>TO: </strong></td>
+					<td>{{ doc.port_of_arrival or "" }}</td>
+					<td><strong>SEAL N.: </strong></td>
+					<td>{{ doc.seal_number or "" }}</td>
+				</tr>
+				<tr>
+					<td></td>
+					<td></td>
+					<td><strong>ETD: & ETA: </strong></td>
+					<td>{{ frappe.utils.formatdate(doc.etd) }} & {{ frappe.utils.formatdate(doc.eta) }}</td>
+				</tr>
+				<tr>
+					<td>Deliver to Port:</td>
+					<td></td>
+					<td></td>
+					<td></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+	<div class="margin-top">
+        <table class="table table-bordered table-condensed table-items">
+            <tr>
+                <th rowspan="2" width="10%">SHIPPING MARK</th>
+                <th rowspan="2" width="33%">PRODUCT DESCIPTION</th>
+                <th rowspan="2" width="13%">EAN</th>
+				<th rowspan="2" width="4%">CTN.</th>
+				<th rowspan="2" width="8%">Q.TY(PCS)</th>
+				<th rowspan="2" width="8%">N.W.(kg)</th>
+                <th rowspan="2" width="8%" width="4%">G.W.(kg)</th>
+                <th colspan="3" width="12%">MEASURES(m)</th>
+				<th rowspan="2" width="4%">CBM</th>
+			</tr>
+			<tr>
+                <th>L</th>
+				<th>W</th>
+				<th>H</th>
+			</tr>
+			{%- for item in doc.items -%}
+			<tr>
+				{% if item.idx == 1 %}	
+				<td rowspan="{{doc.items|length}}">{{ doc.shipping_mark|replace("\n","<br>") or ""}}</td>
+				{% endif %}
+				<td>
+					<b>{{ item.against_sales_order or "" }} {{ item.po_no or "" }}</b><br>
+					{{ item.item_name or "" }}-{{ item.item_code  or ""}}
+				</td>
+				<td class="">{{ item.ean or "" }}</td>
+				<td class="text-right">{{ item.carton }}</td>
+				<td class="text-right">{{ item.get_formatted("stock_qty", doc) }}</td>
+				<td class="text-right">{{ item.get_formatted("net_weight", doc) }}</td>
+				<td class="text-right">{{ item.get_formatted("gross_weight", doc) }}</td>
+				<td class="text-right">{{ item.get_formatted("length", doc) }}</td>
+				<td class="text-right">{{ item.get_formatted("width", doc) }}</td>
+				<td class="text-right">{{ item.get_formatted("height", doc) }}</td>
+				<td class="text-right">{{ item.get_formatted("cbm", doc) }}</td>
+			</tr>
+			{%- endfor -%}
+		</table>
+	</div>		
+</div>
+</section>
+
+<style>{% include "mtmlogistic/templates/includes/print.css" %}</style>
+<style>	
+	.print-heading{
+		text-align: center;
+		border-bottom: none;
+		padding-top: 20px;
+		margin:0;
+	}
+	.print-heading h2{font-weight: bold;}
+	.print-format .table-info td { padding: 2px !important; font-size:11px}
+
+	.print-format .table-items td,
+	.print-format .table-items th { padding: 2px !important; font-size:10px}
+	.print-format .table-items th{text-align: center; vertical-align: middle !important;}
+</style>

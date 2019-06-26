@@ -4,9 +4,12 @@
 
 from __future__ import unicode_literals
 import frappe
+import math
 from frappe import _
 from frappe.model.document import Document
 from frappe.utils import today
+from frappe.model.mapper import get_mapped_doc
+from erpnext.stock.doctype.item.item import get_item_defaults
 
 class MTMPackingList(Document):
 
@@ -73,3 +76,71 @@ def delivery_note_query(doctype, txt, searchfield, start, page_len, filters):
 			'page_len': page_len,
 		}
 	)
+
+@frappe.whitelist()
+def get_delivery_note_items(delivery_note_name):
+	items = []
+	
+	dn_fields = ["item_code", "item_name", "against_sales_order", "stock_qty", "stock_uom"]
+	delivery_note_items = frappe.db.get_list('Delivery Note Item', filters={"parent" : delivery_note_name} , fields= dn_fields, order_by='idx asc')
+
+	for dn_item in delivery_note_items:
+		check_mtm_item = frappe.get_doc('MTM Item Info', dn_item.item_code)
+		mtm_item = frappe.db.get_value('MTM Item Info', {"name" : dn_item.item_code} ,"*")
+
+		item = frappe._dict(mtm_item)
+		item.update(dn_item)
+
+		po_no = ""
+		so = frappe.get_doc('Sales Order', dn_item.against_sales_order)
+		if so:
+			po_no = so.po_no
+		
+		item.po_no = po_no
+
+		stock_qty = int(item.stock_qty)
+		qty_outer = 0
+		qty_carton_outer = 0
+		qty_inner = 0
+		qty_carton_inner = 0
+
+		if item.qty_per_outer > 0:
+			qty_carton_outer = int(stock_qty / item.qty_per_outer)
+			qty_outer =  qty_carton_outer * item.qty_per_outer
+		
+		qty_inner = int(stock_qty - qty_outer)
+		if item.qty_per_inner > 0 and qty_inner > 0:
+			qty_carton_inner = math.floor(qty_inner / item.qty_per_inner)
+
+		item_inner = frappe._dict(item)
+
+		if qty_carton_outer > 0:
+			
+			item.carton_type = "Outer Carton"
+			item.carton = qty_carton_outer
+			item.stock_qty = qty_outer
+			item.net_weight = qty_carton_outer * mtm_item.outer_carton_net_weight
+			item.gross_weight = qty_carton_outer * mtm_item.outer_carton_gross_weight
+			item.cbm = 0
+			item.length = (qty_carton_outer * mtm_item.outer_carton_length)/1000
+			item.width = (qty_carton_outer * mtm_item.outer_carton_width)/1000
+			item.height = (qty_carton_outer * mtm_item.outer_carton_height)/1000
+
+			items.append(item)
+		
+		if qty_carton_inner > 0:
+	
+			item_inner.carton_type = "Inner Carton"
+			item_inner.carton = qty_carton_inner
+			item_inner.stock_qty = qty_inner
+			item_inner.net_weight = qty_carton_inner * mtm_item.inner_carton_net_weight
+			item_inner.gross_weight = qty_carton_inner * mtm_item.inner_carton_gross_weight
+			item_inner.cbm = 0
+			item_inner.length = (qty_carton_inner * mtm_item.inner_carton_length)/1000
+			item_inner.width = (qty_carton_inner * mtm_item.inner_carton_width)/1000
+			item_inner.height = (qty_carton_inner * mtm_item.inner_carton_height)/1000
+
+			items.append(item_inner)
+
+	
+	return items
