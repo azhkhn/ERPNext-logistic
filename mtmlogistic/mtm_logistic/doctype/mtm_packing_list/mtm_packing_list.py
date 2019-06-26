@@ -91,12 +91,7 @@ def get_delivery_note_items(delivery_note_name):
 		item = frappe._dict(mtm_item)
 		item.update(dn_item)
 
-		po_no = ""
-		so = frappe.get_doc('Sales Order', dn_item.against_sales_order)
-		if so:
-			po_no = so.po_no
-		
-		item.po_no = po_no
+		item.po_no = frappe.db.get_value('Sales Order', dn_item.against_sales_order ,"po_no")
 
 		stock_qty = int(item.stock_qty)
 		qty_outer = 0
@@ -142,5 +137,4 @@ def get_delivery_note_items(delivery_note_name):
 
 			items.append(item_inner)
 
-	
 	return items
