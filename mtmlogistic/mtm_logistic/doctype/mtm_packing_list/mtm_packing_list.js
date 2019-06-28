@@ -119,14 +119,14 @@ frappe.ui.form.on('MTM Packing List', {
 	shipment_way: function(frm) {
 		set_reqd_shipment_way(frm);
 	},
-	port_of_embark: function(frm) {
-		if (frm.doc.port_of_arrival && (frm.doc.port_of_embark == frm.doc.port_of_arrival)) {
+	port_of_embarc: function(frm) {
+		if (frm.doc.port_of_arrival && (frm.doc.port_of_embarc == frm.doc.port_of_arrival)) {
 			msgprint(__("Port of Embarc cannot be same Port of Arrival"));
-			frm.set_value("port_of_embark", "");
+			frm.set_value("port_of_embarc", "");
 		}
 	},
 	port_of_arrival: function(frm) {
-		if (frm.doc.port_of_embark && (frm.doc.port_of_embark == frm.doc.port_of_arrival)) {
+		if (frm.doc.port_of_embarc && (frm.doc.port_of_embarc == frm.doc.port_of_arrival)) {
 			msgprint(__("Port of Arrival cannot be same Port of Embarc"));
 			frm.set_value("port_of_arrival", "");
 		}
@@ -149,10 +149,10 @@ var set_reqd_shipment_way = function(frm){
 	}
 
 	if (frm.doc.shipment_way == "By Air" || frm.doc.shipment_way == "By Sea"){
-		frm.set_df_property("port_of_embark", "reqd", 1);
+		frm.set_df_property("port_of_embarc", "reqd", 1);
 		frm.set_df_property("port_of_arrival", "reqd", 1);
 	}else{
-		frm.set_df_property("port_of_embark", "reqd", 0);
+		frm.set_df_property("port_of_embarc", "reqd", 0);
 		frm.set_df_property("port_of_arrival", "reqd", 0);
 	}
 }
