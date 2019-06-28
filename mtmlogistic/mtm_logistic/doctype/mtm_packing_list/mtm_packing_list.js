@@ -147,20 +147,19 @@ frappe.ui.form.on("MTM Packing List Item", {
 		set_item_packing(d);
 	},
 	item_code: function(frm, cdt, cdn) {
-		var me = this;
-		var item = frappe.get_doc(cdt, cdn);
-		
-		if(item.item_code) {
-			frappe.model.with_doc("MTM Item Info", item.item_code, function() {
-				let mtm_info = frappe.model.get_doc("MTM Item Info", item.item_code);
+		var d = locals[cdt][cdn];		
+		if(d.item_code) {
+			frappe.model.with_doc("MTM Item Info", d.item_code, function() {
+				let mtm_info = frappe.model.get_doc("MTM Item Info", d.item_code);
 				if(mtm_info == undefined){
 					msgprint(__("MTM Item Info not found"));
 				}else{
 					frappe.run_serially([
 						() => {
-							var d = locals[cdt][cdn];
 							$.each(mtm_info, function(k, v) {
-								if(!d[k]) d [k] = v;
+								if (["doctype", "name", "docstatus", "creation", "modified", "owner" ,"idx" ,"__last_sync_on"].indexOf(k)===-1) {
+									frappe.model.set_value(cdt, cdn, k, v);
+								}
 							});
 							frappe.model.set_value(cdt, cdn, "carton",1);
 							frappe.model.set_value(cdt, cdn, "carton_type","Outer Carton");
@@ -187,8 +186,8 @@ var set_item_packing = function(item){
 	item.width = 0;
 	item.height = 0;
 	item.cbm = 0;
-
-	if(carton>0){
+	
+	if(stock_qty>0){
 		if(item.carton_type=="Outer Carton" && cint(item.qty_per_outer>0)){
 			
 			//count again stock qty and carton
@@ -199,11 +198,11 @@ var set_item_packing = function(item){
 			item.net_weight = carton * item.outer_carton_net_weight;
 			item.gross_weight = carton * item.outer_carton_gross_weight;
 
-			item.length = flt(carton * item.outer_carton_length)/1000;
-			item.width = flt(carton * item.outer_carton_width)/1000;
-			item.height = flt(carton * item.outer_carton_height)/1000;
+			item.length = item.outer_carton_length/1000;
+			item.width = item.outer_carton_width/1000;
+			item.height = item.outer_carton_height/1000;
 
-			item.cbm = item.length * item.width * item.height;
+			item.cbm = item.length * item.width * item.height * carton;
 
 		}
 	
@@ -217,11 +216,11 @@ var set_item_packing = function(item){
 			item.net_weight = carton * item.inner_carton_net_weight;
 			item.gross_weight = carton * item.inner_carton_gross_weight;
 
-			item.length = flt(carton * item.inner_carton_length)/1000;
-			item.width = flt(carton * item.inner_carton_width)/1000;
-			item.height = flt(carton * item.inner_carton_height)/1000;
+			item.length = item.inner_carton_length/1000;
+			item.width = item.inner_carton_width/1000;
+			item.height = item.inner_carton_height/1000;
 			
-			item.cbm = item.length * item.width *item.height;
+			item.cbm = item.length * item.width *item.height * carton;
 
 		}
 	}
