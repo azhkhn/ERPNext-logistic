@@ -133,6 +133,101 @@ frappe.ui.form.on('MTM Packing List', {
 	},
 });
 
+frappe.ui.form.on("MTM Packing List Item", {
+	carton_type: function(frm, cdt, cdn) {
+		var d = locals[cdt][cdn];
+		set_item_packing(d);
+	},
+	stock_qty: function(frm, cdt, cdn) {
+		var d = locals[cdt][cdn];
+		set_item_packing(d);
+	},
+	carton: function(frm, cdt, cdn) {
+		var d = locals[cdt][cdn];
+		set_item_packing(d);
+	},
+	item_code: function(frm, cdt, cdn) {
+		var me = this;
+		var item = frappe.get_doc(cdt, cdn);
+		
+		if(item.item_code) {
+			frappe.model.with_doc("MTM Item Info", item.item_code, function() {
+				let mtm_info = frappe.model.get_doc("MTM Item Info", item.item_code);
+				if(mtm_info == undefined){
+					msgprint(__("MTM Item Info not found"));
+				}else{
+					frappe.run_serially([
+						() => {
+							var d = locals[cdt][cdn];
+							$.each(mtm_info, function(k, v) {
+								if(!d[k]) d [k] = v;
+							});
+							frappe.model.set_value(cdt, cdn, "carton",1);
+							frappe.model.set_value(cdt, cdn, "carton_type","Outer Carton");
+							frappe.model.set_value(cdt, cdn, "stock_qty", mtm_info.qty_per_outer);
+						},
+						() => frm.script_manager.trigger("stock_qty", cdt, cdn),
+					]);
+				}
+
+			})
+		}
+	},
+
+});
+
+var set_item_packing = function(item){
+	
+	let carton = 1;
+	let stock_qty = cint(item.stock_qty);
+
+	item.net_weight = 0;
+	item.gross_weight = 0;
+	item.length = 0;
+	item.width = 0;
+	item.height = 0;
+	item.cbm = 0;
+
+	if(carton>0){
+		if(item.carton_type=="Outer Carton" && cint(item.qty_per_outer>0)){
+			
+			//count again stock qty and carton
+			let carton = cint(stock_qty / item.qty_per_outer);
+			item.carton = carton;
+			item.stock_qty = carton * item.qty_per_outer;
+
+			item.net_weight = carton * item.outer_carton_net_weight;
+			item.gross_weight = carton * item.outer_carton_gross_weight;
+
+			item.length = flt(carton * item.outer_carton_length)/1000;
+			item.width = flt(carton * item.outer_carton_width)/1000;
+			item.height = flt(carton * item.outer_carton_height)/1000;
+
+			item.cbm = item.length * item.width * item.height;
+
+		}
+	
+		if(item.carton_type=="Inner Carton" && cint(item.qty_per_inner>0)){
+
+			//count again stock qty and carton
+			let carton = cint(stock_qty / item.qty_per_inner);
+			item.carton = carton;
+			item.stock_qty = carton * item.qty_per_inner;
+
+			item.net_weight = carton * item.inner_carton_net_weight;
+			item.gross_weight = carton * item.inner_carton_gross_weight;
+
+			item.length = flt(carton * item.inner_carton_length)/1000;
+			item.width = flt(carton * item.inner_carton_width)/1000;
+			item.height = flt(carton * item.inner_carton_height)/1000;
+			
+			item.cbm = item.length * item.width *item.height;
+
+		}
+	}
+	refresh_field(item.parentfield);
+};
+
 var set_reqd_shipment_way = function(frm){
 	if(frm.doc.shipment_way == "By Sea"){
 		frm.set_df_property("shipment_terms", "reqd", 1);

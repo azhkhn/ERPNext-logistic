@@ -116,10 +116,12 @@ def get_delivery_note_items(delivery_note_name):
 			item.stock_qty = qty_outer
 			item.net_weight = qty_carton_outer * mtm_item.outer_carton_net_weight
 			item.gross_weight = qty_carton_outer * mtm_item.outer_carton_gross_weight
-			item.cbm = 0
+			
 			item.length = (qty_carton_outer * mtm_item.outer_carton_length)/1000
 			item.width = (qty_carton_outer * mtm_item.outer_carton_width)/1000
 			item.height = (qty_carton_outer * mtm_item.outer_carton_height)/1000
+			
+			item.cbm = item.length * item.width * item.height
 
 			items.append(item)
 		
@@ -130,10 +132,12 @@ def get_delivery_note_items(delivery_note_name):
 			item_inner.stock_qty = qty_inner
 			item_inner.net_weight = qty_carton_inner * mtm_item.inner_carton_net_weight
 			item_inner.gross_weight = qty_carton_inner * mtm_item.inner_carton_gross_weight
-			item_inner.cbm = 0
+
 			item_inner.length = (qty_carton_inner * mtm_item.inner_carton_length)/1000
 			item_inner.width = (qty_carton_inner * mtm_item.inner_carton_width)/1000
 			item_inner.height = (qty_carton_inner * mtm_item.inner_carton_height)/1000
+
+			item_inner.cbm = item_inner.length * item_inner.width * item_inner.height
 
 			items.append(item_inner)
 
