@@ -94,7 +94,31 @@
 				<td class="text-right">{{ item.get_formatted("cbm", doc) }}</td>
 			</tr>
 			{%- endfor -%}
+			<tr class="font-weight-bold">
+				<td></td>
+				<td>TOTAL</td>
+				<td></td>
+				<td class="text-right">{{ doc.total_carton }}</td>
+				<td class="text-right">{{ doc.get_formatted("total_stock_qty") }}</td>
+				<td class="text-right">{{ doc.get_formatted("total_net_weight") }}</td>
+				<td class="text-right">{{ doc.get_formatted("total_gross_weight") }}</td>
+				<td></td>
+				<td></td>
+				<td></td>
+				<td class="text-right">{{ doc.get_formatted("total_cbm") }}</td>
+			</tr>
 		</table>
+	</div>
+	<div class="font-weight-bold">
+		SAY TOTAL: {{ doc.total_carton_in_words|upper}} CARTON ONLY
+	</div>
+	<div class="margin-top font-weight-bold row">
+		<div class="col-md-6"></div>
+		<div class="col-md-6">FOR AND ON BEHALF OF MTM TECHNOLOGY LTD.</div>
+	</div>
+	<div class="margin-top row">
+		<div class="col-md-6"><span class="font-weight-bold">REMARKS:</span> COUNTRY OF ORIGIN:CHINA</div>
+		<div class="col-md-6 font-weight-bold">AUTHORIZED SIGNATURE:</div>
 	</div>		
 </div>
 </section>

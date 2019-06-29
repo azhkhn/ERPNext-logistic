@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import today
 from frappe.model.mapper import get_mapped_doc
 from erpnext.stock.doctype.item.item import get_item_defaults
+from frappe.utils import in_words
 
 class MTMPackingList(Document):
 
@@ -18,6 +19,8 @@ class MTMPackingList(Document):
 			self.port_of_embarc = ""
 			self.port_of_arrival = ""
 		
+		self.total_carton_in_words = in_words(self.total_carton)
+
 		# Check exist Delivery Note
 		exist_name = frappe.db.get_value("MTM Packing List", {"delivery_note": self.delivery_note, "docstatus":("!=", 2)})
 		if exist_name and exist_name!=self.name:

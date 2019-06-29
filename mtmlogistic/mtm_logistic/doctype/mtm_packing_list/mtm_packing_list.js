@@ -1,6 +1,53 @@
 // Copyright (c) 2019, MTM Technology Ltd and contributors
 // For license information, please see license.txt
 
+var packing_list_item_fields = [
+	'item_code',
+	'item_name',
+	'against_sales_order',
+	'po_no',
+	'stock_qty',
+	'stock_uom',
+	'carton',
+	'carton_type',
+
+	'width',
+	'height',
+	'length',
+	'net_weight',
+	'gross_weight',
+	'cbm',
+	
+	'pack_width',
+	'pack_length',
+	'pack_volume',
+	'pack_height',
+	'product_gross_weight',
+	'product_net_weight',
+
+	'without_inner_carton',
+	'qty_per_inner',
+	'qty_per_outer',
+	
+	
+	'inner_carton_width',
+	'inner_carton_height',
+	'inner_carton_length',
+	'inner_carton_net_weight',
+	'inner_carton_gross_weight',
+	'inner_carton_volume',
+
+	'outer_carton_length',
+	'outer_carton_width',
+	'outer_carton_height',
+	'outer_carton_net_weight',
+	'outer_carton_gross_weight',
+	'outer_carton_volume',	
+
+	'hs_code',
+];
+
+
 frappe.ui.form.on('MTM Packing List', {
 	refresh: function (frm) {
 		set_reqd_shipment_way(frm);
@@ -78,26 +125,27 @@ frappe.ui.form.on('MTM Packing List', {
 						delivery_note_name: frm.doc.delivery_note
 					},
 					callback: function(r) {
+						frappe.model.clear_table(frm.doc, "items");
 						if (!r.message) {
 							frappe.throw(__("Delivery Note does not contain any item"));
 						} else {
-							frappe.model.clear_table(frm.doc, "items");
-							let idx = 0;
+							
+							var idx = 0;
 							$.each(r.message, function(i, dnitem) {
-								let d = frappe.model.add_child(cur_frm.doc, "MTM Packing List Item", "items");
+								var d = frappe.model.add_child(frm.doc, "MTM Packing List Item", "items");
 
 								for(let k in dnitem) {
-									let v = dnitem[k];
-									if (["doctype", "name", "docstatus"].indexOf(k)===-1) {
-										frappe.model.set_value(d.doctype, d.name, k, v);
+									if (packing_list_item_fields.indexOf(k)!=-1) {
+										d[k] = dnitem[k] ;
 									}
 								}
 								idx ++;
-								frappe.model.set_value(d.doctype, d.name, "idx", idx);
-
+								d["idx"] = idx;
 							});
+							
 						}
 						refresh_field("items");
+						set_total_packing(frm);
 					}
 				});
 
@@ -130,23 +178,23 @@ frappe.ui.form.on('MTM Packing List', {
 			msgprint(__("Port of Arrival cannot be same Port of Embarc"));
 			frm.set_value("port_of_arrival", "");
 		}
-	},
+	}
 });
 
 frappe.ui.form.on("MTM Packing List Item", {
+	items_remove: function(frm) {
+        set_total_packing(frm);
+    },
 	carton_type: function(frm, cdt, cdn) {
-		var d = locals[cdt][cdn];
-		set_item_packing(d);
+		set_item_packing(frm, cdt, cdn);
 	},
 	stock_qty: function(frm, cdt, cdn) {
-		var d = locals[cdt][cdn];
-		set_item_packing(d);
+		set_item_packing(frm, cdt, cdn);
 	},
 	carton: function(frm, cdt, cdn) {
-		var d = locals[cdt][cdn];
-		set_item_packing(d);
+		set_item_packing(frm, cdt, cdn);
 	},
-	item_code: function(frm, cdt, cdn) {
+	item_code: function(frm, cdt, cdn) { alert(11);
 		var d = locals[cdt][cdn];		
 		if(d.item_code) {
 			frappe.model.with_doc("MTM Item Info", d.item_code, function() {
@@ -157,13 +205,14 @@ frappe.ui.form.on("MTM Packing List Item", {
 					frappe.run_serially([
 						() => {
 							$.each(mtm_info, function(k, v) {
-								if (["doctype", "name", "docstatus", "creation", "modified", "owner" ,"idx" ,"__last_sync_on"].indexOf(k)===-1) {
-									frappe.model.set_value(cdt, cdn, k, v);
+								if (packing_list_item_fields.indexOf(k)!=-1) {
+									d[k] = v;
 								}
 							});
-							frappe.model.set_value(cdt, cdn, "carton",1);
-							frappe.model.set_value(cdt, cdn, "carton_type","Outer Carton");
-							frappe.model.set_value(cdt, cdn, "stock_qty", mtm_info.qty_per_outer);
+							if(!d["carton_type"])
+								d["carton_type"] = "Outer Carton";
+							if(!d["stock_qty"])
+								d["stock_qty"] = mtm_info.qty_per_outer;
 						},
 						() => frm.script_manager.trigger("stock_qty", cdt, cdn),
 					]);
@@ -175,8 +224,34 @@ frappe.ui.form.on("MTM Packing List Item", {
 
 });
 
-var set_item_packing = function(item){
-	
+var set_total_packing = function(frm){
+	var items = frm.doc.items || [];
+
+	var total_stock_qty = 0;
+	var total_carton = 0;
+	var total_net_weight = 0;
+	var total_gross_weight = 0;
+	var total_cbm = 0;
+
+	for(var i=0; i<items.length; i++) {
+		total_stock_qty += items[i].stock_qty;
+		total_carton += items[i].carton;
+		total_net_weight += items[i].net_weight;
+		total_gross_weight += items[i].gross_weight;
+		total_cbm += items[i].cbm;
+	}
+
+	frm.set_value("total_stock_qty", total_stock_qty);
+	frm.set_value("total_carton", total_carton);
+	frm.set_value("total_net_weight", total_net_weight);
+	frm.set_value("total_gross_weight", total_gross_weight);
+	frm.set_value("total_cbm", total_cbm);
+	frm.set_value("total_carton_in_words", "");
+}
+
+var set_item_packing = function(frm, cdt, cdn){
+	var item = locals[cdt][cdn];
+
 	let carton = 1;
 	let stock_qty = cint(item.stock_qty);
 
@@ -191,7 +266,7 @@ var set_item_packing = function(item){
 		if(item.carton_type=="Outer Carton" && cint(item.qty_per_outer>0)){
 			
 			//count again stock qty and carton
-			let carton = cint(stock_qty / item.qty_per_outer);
+			carton = cint(stock_qty / item.qty_per_outer);
 			item.carton = carton;
 			item.stock_qty = carton * item.qty_per_outer;
 
@@ -209,7 +284,7 @@ var set_item_packing = function(item){
 		if(item.carton_type=="Inner Carton" && cint(item.qty_per_inner>0)){
 
 			//count again stock qty and carton
-			let carton = cint(stock_qty / item.qty_per_inner);
+			carton = cint(stock_qty / item.qty_per_inner);
 			item.carton = carton;
 			item.stock_qty = carton * item.qty_per_inner;
 
@@ -225,6 +300,7 @@ var set_item_packing = function(item){
 		}
 	}
 	refresh_field(item.parentfield);
+	set_total_packing(frm);
 };
 
 var set_reqd_shipment_way = function(frm){
