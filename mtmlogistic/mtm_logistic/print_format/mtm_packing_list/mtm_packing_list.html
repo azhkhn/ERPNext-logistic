@@ -80,6 +80,14 @@
 								<td><strong>ETD: & ETA: </strong></td>
 								<td>{{ frappe.utils.formatdate(doc.etd) }} & {{ frappe.utils.formatdate(doc.eta) }}</td>
 							</tr>
+							<tr>
+								<td><strong>SHIPPING TERMS: </strong></td>
+								<td>{{ doc.shipment_terms or "" }}</td>
+							</tr>
+							<tr>
+								<td><strong>DELIVERY METHOD: </strong></td>
+								<td>{{ doc.shipment_way or "" }}</td>
+							</tr>							
 						</table>
 					</td>
 				</tr>
