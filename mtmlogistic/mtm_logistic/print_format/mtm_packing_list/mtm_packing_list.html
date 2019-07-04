@@ -121,11 +121,22 @@
 				{% endif %}
 				<td>
 					<b>{{ item.against_sales_order or "" }} {{ item.po_no or "" }}</b><br>
+					{% if item.multi_item == 0 %}	
 					{{ item.item_name or "" }}-{{ item.item_code  or ""}}
+					{% else %}
+					{{ item.dn_items|replace("\n","<br>") }}
+					{% endif %}
 				</td>
 				<td class="">{{ item.ean or "" }}</td>
 				<td class="text-right">{{ item.carton }}</td>
-				<td class="text-right">{{ item.get_formatted("stock_qty", doc) }}</td>
+				<td class="text-right">
+					{% if item.multi_item == 0 %}
+						{{ item.get_formatted("stock_qty", doc) }}
+					{% else %}
+						<br>
+						{{ item.dn_items_qty|replace("\n","<br>") }}
+					{% endif %}					
+				</td>
 				<td class="text-right">{{ item.get_formatted("net_weight", doc) }}</td>
 				<td class="text-right">{{ item.get_formatted("gross_weight", doc) }}</td>
 				<td class="text-right">{{ item.get_formatted("length", doc) }}</td>

@@ -182,6 +182,24 @@ frappe.ui.form.on('MTM Packing List', {
 });
 
 frappe.ui.form.on("MTM Packing List Item", {
+	dn_item: function(frm, cdt, cdn) {
+		var item = locals[cdt][cdn];
+        if(item.dn_item) {
+			var val = (item.dn_items || "").split("\n").concat([item.dn_item]).join("\n");
+			frappe.model.set_value(cdt, cdn, "dn_items", val.trim());
+		}
+	},
+	dn_items_qty: function(frm, cdt, cdn) {
+		var item = locals[cdt][cdn];
+        if(item.dn_items_qty) {
+			let dn_items_qty = (item.dn_items_qty || "").trim().split("\n");
+			let stock_qty = 0;
+			$.each(dn_items_qty || [], function(i, qty) {
+				stock_qty = stock_qty + cint(qty);
+			})
+			frappe.model.set_value(cdt, cdn, "stock_qty", stock_qty);
+		}
+    },
 	items_remove: function(frm) {
         set_total_packing(frm);
     },
@@ -194,7 +212,7 @@ frappe.ui.form.on("MTM Packing List Item", {
 	carton: function(frm, cdt, cdn) {
 		set_item_packing(frm, cdt, cdn);
 	},
-	item_code: function(frm, cdt, cdn) { alert(11);
+	item_code: function(frm, cdt, cdn) {
 		var d = locals[cdt][cdn];		
 		if(d.item_code) {
 			frappe.model.with_doc("MTM Item Info", d.item_code, function() {
@@ -252,8 +270,12 @@ var set_total_packing = function(frm){
 var set_item_packing = function(frm, cdt, cdn){
 	var item = locals[cdt][cdn];
 
-	let carton = 1;
-	let stock_qty = cint(item.stock_qty);
+	var carton = cint(item.carton);
+	var stock_qty = cint(item.stock_qty);
+	if(item.multi_item == 0){
+		carton = 1;
+		stock_qty = cint(item.stock_qty);
+	}
 
 	item.net_weight = 0;
 	item.gross_weight = 0;
@@ -265,13 +287,13 @@ var set_item_packing = function(frm, cdt, cdn){
 	if(stock_qty>0){
 		if(item.carton_type=="Outer Carton" && cint(item.qty_per_outer>0)){
 			
-			//count again stock qty and carton
-			carton = cint(stock_qty / item.qty_per_outer);
-			item.carton = carton;
-			item.stock_qty = carton * item.qty_per_outer;
-
-			item.net_weight = carton * item.outer_carton_net_weight;
-			item.gross_weight = carton * item.outer_carton_gross_weight;
+			if(item.multi_item == 0){//count again stock qty and carton
+				carton = cint(stock_qty / item.qty_per_outer);
+				item.carton = carton;
+				item.stock_qty = carton * item.qty_per_outer;
+				item.net_weight = carton * item.outer_carton_net_weight;
+				item.gross_weight = carton * item.outer_carton_gross_weight;
+			}
 
 			item.length = item.outer_carton_length/1000;
 			item.width = item.outer_carton_width/1000;
@@ -283,13 +305,13 @@ var set_item_packing = function(frm, cdt, cdn){
 	
 		if(item.carton_type=="Inner Carton" && cint(item.qty_per_inner>0)){
 
-			//count again stock qty and carton
-			carton = cint(stock_qty / item.qty_per_inner);
-			item.carton = carton;
-			item.stock_qty = carton * item.qty_per_inner;
-
-			item.net_weight = carton * item.inner_carton_net_weight;
-			item.gross_weight = carton * item.inner_carton_gross_weight;
+			if(item.multi_item == 0){//count again stock qty and carton
+				carton = cint(stock_qty / item.qty_per_inner);
+				item.carton = carton;
+				item.stock_qty = carton * item.qty_per_inner;
+				item.net_weight = carton * item.inner_carton_net_weight;
+				item.gross_weight = carton * item.inner_carton_gross_weight;
+			}
 
 			item.length = item.inner_carton_length/1000;
 			item.width = item.inner_carton_width/1000;
@@ -325,4 +347,8 @@ var set_reqd_shipment_way = function(frm){
 		frm.set_df_property("port_of_embarc", "reqd", 0);
 		frm.set_df_property("port_of_arrival", "reqd", 0);
 	}
+}
+
+function getSumQty(total, num) {
+	return total + Math.round(cint(num));
 }
