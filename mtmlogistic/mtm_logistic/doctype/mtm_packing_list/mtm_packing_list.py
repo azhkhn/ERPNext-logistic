@@ -10,7 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import today
 from frappe.model.mapper import get_mapped_doc
 from erpnext.stock.doctype.item.item import get_item_defaults
-from frappe.utils import in_words
+from frappe.utils import in_words, cint
 
 class MTMPackingList(Document):
 
@@ -19,13 +19,21 @@ class MTMPackingList(Document):
 			self.port_of_embarc = ""
 			self.port_of_arrival = ""
 		
-		self.total_carton_in_words = in_words(self.total_carton)
+		if self.total_carton:
+			self.total_carton_in_words = in_words(self.total_carton)
 
 		# Check exist Delivery Note
 		exist_name = frappe.db.get_value("MTM Packing List", {"delivery_note": self.delivery_note, "docstatus":("!=", 2)})
 		if exist_name and exist_name!=self.name:
 			exist_link = '<a href="#Form/{0}/{1}">{1}</a>'.format(self.doctype, exist_name)
 			frappe.throw(_("Delivery Note {0} is linked with Packing List {1}").format(self.delivery_note, exist_link))
+
+		# Update Qty for multi Item
+		for item in self.items:
+			if item.multi_item:
+				item.stock_qty = 0
+				for qty in item.dn_items_qty.split("\n") or []:
+					item.stock_qty += cint(qty)
 	
 	def before_submit(self):
 		if self.shipment_way == "By Sea" and self.container_type != "LCL":
@@ -41,6 +49,20 @@ class MTMPackingList(Document):
 		if self.shipment_way == "By Air":
 			if not self.awb_number:
 				frappe.throw(_("AWB Number is Required"), title="Mandatory Field")
+
+		# Check Qty Delivery Note and PL
+		total_stock_qty = 0
+		for item in self.items:
+			if item.multi_item:
+				item.stock_qty = 0
+				for qty in item.dn_items_qty.split("\n") or []:
+					item.stock_qty += cint(qty)
+
+			total_stock_qty += cint(item.stock_qty)
+
+		delivery_note = frappe.get_doc('Delivery Note', self.delivery_note)
+		if delivery_note and total_stock_qty != cint(delivery_note.total_qty):
+			frappe.throw(_("Qty Delivery Note {0} and Qty Packing List {1} are not same").format(cint(delivery_note.total_qty), total_stock_qty))
 
 
 @frappe.whitelist()
@@ -79,6 +101,40 @@ def delivery_note_query(doctype, txt, searchfield, start, page_len, filters):
 			'page_len': page_len,
 		}
 	)
+
+@frappe.whitelist()
+def dn_item_query(doctype, txt, searchfield, start, page_len, filters):
+
+	dni_condition = ""
+	
+	if filters.get('dn_name'):
+		dn_name = filters.get('dn_name')
+		dni_condition += " and  dni.parent = '{0}'".format(dn_name)
+	else:
+		dni_condition = "and 0"
+
+	return frappe.db.sql("""
+		SELECT DISTINCT
+			dni.item_code, dni.item_name
+		FROM
+			`tabDelivery Note Item` as dni
+		WHERE
+			(dni.item_code like %(txt)s or dni.item_name like %(txt)s) 
+			{dni_condition}
+		ORDER BY
+			if(locate(%(_txt)s, dni.item_code), locate(%(_txt)s, dni.item_code), 99999),
+			dni.item_code
+		LIMIT
+			%(start)s, %(page_len)s""".format(
+			dni_condition = dni_condition),
+		{
+			'txt': "%%%s%%" % txt,
+			'_txt': txt.replace("%", ""),
+			'start': start,
+			'page_len': page_len,
+		}
+	)
+
 
 @frappe.whitelist()
 def get_delivery_note_items(delivery_note_name):

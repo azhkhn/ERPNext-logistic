@@ -89,6 +89,17 @@ frappe.ui.form.on('MTM Packing List', {
 				}
 			};
 		});
+		// frm.set_query("dn_item", "items", function(doc, cdt, cdn) {
+		// 	if(!doc.delivery_note){
+		// 		frappe.throw(__("Delivery Note is required"));
+		// 	}
+		// 	return {
+		// 		query: 'mtmlogistic.mtm_logistic.doctype.mtm_packing_list.mtm_packing_list.dn_item_query',
+		// 		filters: {
+		// 			dn_name: doc.delivery_note
+		// 		}
+		// 	}
+		// });
 		// frm.trigger("delivery_note");
 	},
 	validate: function(frm) {
@@ -178,17 +189,20 @@ frappe.ui.form.on('MTM Packing List', {
 			msgprint(__("Port of Arrival cannot be same Port of Embarc"));
 			frm.set_value("port_of_arrival", "");
 		}
+	},
+	items_on_form_rendered: function(doc, grid_row) {
+		setup_dn_items();
 	}
 });
 
 frappe.ui.form.on("MTM Packing List Item", {
-	dn_item: function(frm, cdt, cdn) {
-		var item = locals[cdt][cdn];
-        if(item.dn_item) {
-			var val = (item.dn_items || "").split("\n").concat([item.dn_item]).join("\n");
-			frappe.model.set_value(cdt, cdn, "dn_items", val.trim());
-		}
-	},
+	// dn_item: function(frm, cdt, cdn) {
+	// 	var item = locals[cdt][cdn];
+    //     if(item.dn_item) {
+	// 		var val = (item.dn_items || "").split("\n").concat([item.dn_item]).join("\n");
+	// 		frappe.model.set_value(cdt, cdn, "dn_items", val.trim());
+	// 	}
+	// },
 	dn_items_qty: function(frm, cdt, cdn) {
 		var item = locals[cdt][cdn];
         if(item.dn_items_qty) {
@@ -351,4 +365,68 @@ var set_reqd_shipment_way = function(frm){
 
 function getSumQty(total, num) {
 	return total + Math.round(cint(num));
+}
+
+var setup_dn_items =  function() {
+	var grid_row = cur_frm.open_grid_row();
+	if(!grid_row || !grid_row.grid_form.fields_dict.dn_items ||
+		grid_row.grid_form.fields_dict.dn_items.get_status()!=="Write") return;
+
+	var $btn = $('<button class="btn btn-sm btn-default">'+__("Add Delivery Note Item")+'</button>')
+		.appendTo($("<div>")
+			.css({"margin-bottom": "10px", "margin-top": "10px"})
+			.appendTo(grid_row.grid_form.fields_dict.dn_items.$wrapper));
+
+	$btn.on("click", function() {
+		if(!cur_frm.doc.delivery_note){
+			frappe.throw(__("Delivery Note is required"));
+		}
+		
+		var d = new frappe.ui.Dialog({
+			title: __("Add Delivery Note Item"),
+			fields: [
+				{
+					"fieldtype": "Link",
+					"fieldname": "d_dn_item",
+					"options": "Item",
+					"label": __("Delivery Note Item"),
+					"get_query": function () {
+						return {
+							query: 'mtmlogistic.mtm_logistic.doctype.mtm_packing_list.mtm_packing_list.dn_item_query',
+							filters: {
+								dn_name: cur_frm.doc.delivery_note
+							}
+						}
+					}
+				},
+				{
+					"fieldtype": "Int",
+					"fieldname": "d_dn_item_qty",
+					"label": __("Delivery Note Item Qty"),
+				},
+				{
+					"fieldtype": "Button",
+					"fieldname": "add",
+					"label": __("Add")
+				}
+			]
+		});
+
+		d.get_input("add").on("click", function() {
+			var d_dn_item = d.get_value("d_dn_item");
+			var d_dn_item_qty = d.get_value("d_dn_item_qty");
+			if(d_dn_item) {
+				var val = (grid_row.doc.dn_items || "").trim().split("\n").concat([d_dn_item]).join("\n");
+				grid_row.grid_form.fields_dict.dn_items.set_model_value(val.trim());
+			}
+			if(d_dn_item_qty) {
+				var val = (grid_row.doc.dn_items_qty || "").trim().split("\n").concat([d_dn_item_qty]).join("\n");
+				grid_row.grid_form.fields_dict.dn_items_qty.set_model_value(val.trim());
+			}
+			d.hide();
+			return false;
+		});
+
+		d.show();
+	});
 }

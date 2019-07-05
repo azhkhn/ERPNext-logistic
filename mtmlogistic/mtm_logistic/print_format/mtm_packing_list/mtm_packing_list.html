@@ -124,7 +124,10 @@
 					{% if item.multi_item == 0 %}	
 					{{ item.item_name or "" }}-{{ item.item_code  or ""}}
 					{% else %}
-					{{ item.dn_items|replace("\n","<br>") }}
+					{%- for item_item_code in item.dn_items.split("\n") -%}
+					{%- set item_item_name = frappe.db.get_value("Item", item_item_code, "item_name") -%}
+					{{ item_item_name or "" }}-{{ item_item_code  or ""}}<br>
+					{%- endfor -%}
 					{% endif %}
 				</td>
 				<td class="">{{ item.ean or "" }}</td>
